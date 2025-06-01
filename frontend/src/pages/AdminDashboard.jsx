@@ -10,18 +10,49 @@ import {
   Card,
   CardContent,
   CardMedia,
-  CardActions,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
   Alert,
   Checkbox,
+  Drawer,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  Divider,
+  CssBaseline,
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import {
+  PersonAdd,
+  Groups,
+  HowToVote,
+  HowToReg,
+  History,
+  BarChart,
+  AccountTree,
+  People,
+  LiveTv,
+  Logout,
+  Home,
+  Map
+} from '@mui/icons-material';
+// import IndiaMap from './IndiaMap'; // You'll need to create or import an IndiaMap component
+import ElectionResult from '../components/ElectionResult';
+import Parties from '../components/Parties';
+import PreviousElections from '../components/PreviousElection';
+import AddAdmin from '../components/AddAdmin';
+import AddVoter from '../components/AddVoter';
+import CreateElection from '../components/CreateElection';
+import Voters from '../components/Voters';
+import LiveElection from '../components/LiveElection';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState('home');
   const [candidates, setCandidates] = useState([]);
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showResultsDialog, setShowResultsDialog] = useState(false);
@@ -36,8 +67,10 @@ const AdminDashboard = () => {
 
   // Fetch candidates on component mount
   useEffect(() => {
-    fetchCandidates();
-  }, []);
+    if (activeTab === 'candidates') {
+      fetchCandidates();
+    }
+  }, [activeTab]);
 
   const fetchCandidates = async () => {
     try {
@@ -124,27 +157,6 @@ const AdminDashboard = () => {
     }
   };
 
-  const handleDeleteCandidate = async (id) => {
-    try {
-      const response = await fetch(`http://localhost:5000/api/admin/candidates/${id}`, {
-        method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to delete candidate');
-      }
-
-      fetchCandidates();
-    } catch (err) {
-      setError(err.message);
-    }
-  };
-
-
-
   const handleResetVotes = async () => {
     try {
       const response = await fetch('http://localhost:5000/api/admin/reset-votes', {
@@ -190,129 +202,237 @@ const AdminDashboard = () => {
     navigate('/');
   };
 
-  return (
-    <Container maxWidth="lg">
-      <Box sx={{ mt: 4, mb: 4 }}>
-        <Paper elevation={3} sx={{ p: 4 }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 4 }}>
-            <Typography component="h1" variant="h4">
-            चुनाव आयोग नियंत्रण केंद्र 
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'home':
+        return (
+          <Box sx={{ p: 3, textAlign: 'center' }}>
+            <Typography variant="h4" gutterBottom>
+              Election Commission Dashboard
             </Typography>
-            <Button variant="outlined" color="error" onClick={handleLogout}>
-              Logout
-            </Button>
+            <Typography variant="subtitle1" gutterBottom>
+              Welcome to the Election Commission Control Center
+            </Typography>
+            <Box sx={{ mt: 4 }}>
+              {/* <IndiaMap /> Replace with your actual India map component */}
+            </Box>
           </Box>
-
-          {error && (
-            <Alert severity="error" sx={{ mb: 2 }}>
-              {error}
-            </Alert>
-          )}
-
-          <Box sx={{ mb: 4 }}>
-            <Grid container spacing={2}>
-              <Grid item>
-                <Button
-                  variant="contained"
-                  color="primary"
-                  onClick={() => setShowAddDialog(true)}
-                >
-                  Add Candidate
-                </Button>
-              </Grid>
-              <Grid item>
-                {deleteMode ? (
-                  <Button
-                    variant="contained"
-                    color="error"
-                    onClick={handleDeleteSelected}
-                    disabled={selectedCandidates.length === 0}
-                  >
-                    Delete Selected ({selectedCandidates.length})
-                  </Button>
-                ) : (
-                  <Button
-                    variant="contained"
-                    color="error"
-                    onClick={handleToggleDeleteMode}
-                  >
-                    Delete Candidates
-                  </Button>
-                )}
-              </Grid>
-
-              <Grid item>
-                <Button
-                  variant="contained"
-                  color="warning"
-                  onClick={handleResetVotes}
-                >
-                  Reset All Votes
-                </Button>
-              </Grid>
-              <Grid item>
-                <Button
-                  variant="contained"
-                  color="info"
-                  onClick={handleViewResults}
-                >
-                  View Results
-                </Button>
-              </Grid>
-            </Grid>
+        );
+      case 'addAdmin':
+        return (
+          <Box sx={{ p: 3 }}>
+            <Typography variant="h4" gutterBottom>
+              <AddAdmin />
+            </Typography>
+            {/* Add admin form would go here */}
           </Box>
+        );
+      case 'addParty':
+        return (
+          <Box sx={{ p: 3 }}>
+            <Typography variant="h4" gutterBottom>
+              Add New Party
+            </Typography>
+            {/* Add party form would go here */}
+          </Box>
+        );
+      case 'addVoter':
+        return (
+          <Box sx={{ p: 3 }}>
+            <Typography variant="h4" gutterBottom>
+              <AddVoter />
+            </Typography>
+            {/* Add voter form would go here */}
+          </Box>
+        );
+      case 'createElection':
+        return (
+          <Box sx={{ p: 3 }}>
+            <Typography variant="h4" gutterBottom>
+              <CreateElection />
+            </Typography>
+            {/* Create election form would go here */}
+          </Box>
+        );
+      case 'previousElection':
+        return (
+          <Box sx={{ p: 3 }}>
+            <Typography variant="h4" gutterBottom>
+              <PreviousElections />
+            </Typography>
+            {/* Previous elections list would go here */}
+          </Box>
+        );
+      case 'electionResult':
+        return (
+          <Box sx={{ p: 3 }}>
+            <Typography variant="h4" gutterBottom>
+             <ElectionResult />
+            </Typography>
+            {/* Election results would go here */}
+          </Box>
+        );
+      case 'parties':
+        return (
+          <Box sx={{ p: 3 }}>
+            <Typography variant="h4" gutterBottom>
+              <Parties />
+            </Typography>
+            {/* Parties list would go here */}
+          </Box>
+        );
+      case 'voters':
+        return (
+          <Box sx={{ p: 3 }}>
+            <Typography variant="h4" gutterBottom>
+              <Voters />
+            </Typography>
+            {/* Voters list would go here */}
+          </Box>
+        );
+      case 'liveElection':
+        return (
+          <Box sx={{ p: 3 }}>
+            <Typography variant="h4" gutterBottom>
+              <LiveElection />
+            </Typography>
+            {/* Live election monitoring would go here */}
+          </Box>
+        );
+      default:
+        return (
+          <Box sx={{ p: 3 }}>
+            <Typography variant="h4" gutterBottom>
+              Dashboard
+            </Typography>
+          </Box>
+        );
+    }
+  };
 
-          <Grid container spacing={3}>
-            {candidates.map((candidate) => (
-              <Grid item xs={12} sm={6} md={4} key={candidate._id}>
-                <Card sx={{
-                  position: 'relative',
-                  opacity: deleteMode && !selectedCandidates.includes(candidate._id) ? 0.7 : 1
-                }}>
-                  {deleteMode && (
-                    <Checkbox
-                      checked={selectedCandidates.includes(candidate._id)}
-                      onChange={() => handleToggleSelect(candidate._id)}
-                      sx={{
-                        position: 'absolute',
-                        top: 8,
-                        right: 8,
-                        zIndex: 1,
-                        backgroundColor: 'rgba(255, 255, 255, 0.8)',
-                        '&:hover': {
-                          backgroundColor: 'rgba(255, 255, 255, 0.9)'
-                        }
-                      }}
-                    />
-                  )}
-                  <CardMedia
-                    component="img"
-                    height="140"
-                    image={candidate.partySymbol}
-                    alt={candidate.partyName}
-                    sx={{
-                      cursor: deleteMode ? 'pointer' : 'default'
-                    }}
-                    onClick={() => deleteMode && handleToggleSelect(candidate._id)}
-                  />
-                  <CardContent>
-                    <Typography variant="h6" gutterBottom>
-                      {candidate.name}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Party: {candidate.partyName}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Votes: {candidate.votes}
-                    </Typography>
-                  </CardContent>
-                  <CardActions>
-                  </CardActions>
-                </Card>
-              </Grid>
-            ))}
-          </Grid>
-        </Paper>
+  return (
+    <Box sx={{ display: 'flex' }}>
+      <CssBaseline />
+      <Drawer
+        variant="permanent"
+        sx={{
+          width: 240,
+          flexShrink: 0,
+          '& .MuiDrawer-paper': {
+            width: 240,
+            boxSizing: 'border-box',
+          },
+        }}
+      >
+        <Box sx={{ p: 2, textAlign: 'center' }}>
+          <Typography variant="h6">चुनाव आयोग</Typography>
+          <Typography variant="subtitle2">Admin Panel</Typography>
+        </Box>
+        <Divider />
+        <List>
+          <ListItem disablePadding>
+            <ListItemButton onClick={() => setActiveTab('home')}>
+              <ListItemIcon>
+                <Home />
+              </ListItemIcon>
+              <ListItemText primary="Dashboard" />
+            </ListItemButton>
+          </ListItem>
+          <ListItem disablePadding>
+            <ListItemButton onClick={() => setActiveTab('addAdmin')}>
+              <ListItemIcon>
+                <PersonAdd />
+              </ListItemIcon>
+              <ListItemText primary="Add Admin" />
+            </ListItemButton>
+          </ListItem>
+          <ListItem disablePadding>
+            <ListItemButton onClick={() => setActiveTab('addParty')}>
+              <ListItemIcon>
+                <Groups />
+              </ListItemIcon>
+              <ListItemText primary="Add Party" />
+            </ListItemButton>
+          </ListItem>
+          <ListItem disablePadding>
+            <ListItemButton onClick={() => setActiveTab('addVoter')}>
+              <ListItemIcon>
+                <HowToVote />
+              </ListItemIcon>
+              <ListItemText primary="Add Voter" />
+            </ListItemButton>
+          </ListItem>
+          <ListItem disablePadding>
+            <ListItemButton onClick={() => setActiveTab('createElection')}>
+              <ListItemIcon>
+                <HowToReg />
+              </ListItemIcon>
+              <ListItemText primary="Create Election" />
+            </ListItemButton>
+          </ListItem>
+          <ListItem disablePadding>
+            <ListItemButton onClick={() => setActiveTab('previousElection')}>
+              <ListItemIcon>
+                <History />
+              </ListItemIcon>
+              <ListItemText primary="Previous Election" />
+            </ListItemButton>
+          </ListItem>
+          <ListItem disablePadding>
+            <ListItemButton onClick={() => setActiveTab('electionResult')}>
+              <ListItemIcon>
+                <BarChart />
+              </ListItemIcon>
+              <ListItemText primary="Election Result" />
+            </ListItemButton>
+          </ListItem>
+          <ListItem disablePadding>
+            <ListItemButton onClick={() => setActiveTab('parties')}>
+              <ListItemIcon>
+                <AccountTree />
+              </ListItemIcon>
+              <ListItemText primary="Parties" />
+            </ListItemButton>
+          </ListItem>
+          <ListItem disablePadding>
+            <ListItemButton onClick={() => setActiveTab('voters')}>
+              <ListItemIcon>
+                <People />
+              </ListItemIcon>
+              <ListItemText primary="Voters" />
+            </ListItemButton>
+          </ListItem>
+          <ListItem disablePadding>
+            <ListItemButton onClick={() => setActiveTab('liveElection')}>
+              <ListItemIcon>
+                <LiveTv />
+              </ListItemIcon>
+              <ListItemText primary="Live Election" />
+            </ListItemButton>
+          </ListItem>
+        </List>
+        <Divider />
+        <Box sx={{ position: 'absolute', bottom: 0, width: '100%' }}>
+          <ListItem disablePadding>
+            <ListItemButton onClick={handleLogout}>
+              <ListItemIcon>
+                <Logout />
+              </ListItemIcon>
+              <ListItemText primary="Logout" />
+            </ListItemButton>
+          </ListItem>
+        </Box>
+      </Drawer>
+      <Box
+        component="main"
+        sx={{
+          flexGrow: 1,
+          bgcolor: 'background.default',
+          p: 3,
+          marginLeft: '240px',
+        }}
+      >
+        {renderContent()}
       </Box>
 
       {/* Add Candidate Dialog */}
@@ -382,7 +502,7 @@ const AdminDashboard = () => {
           <Button onClick={() => setShowResultsDialog(false)}>Close</Button>
         </DialogActions>
       </Dialog>
-    </Container>
+    </Box>
   );
 };
 
