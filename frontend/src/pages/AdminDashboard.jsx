@@ -46,9 +46,10 @@ import Parties from '../components/Parties';
 import PreviousElections from '../components/PreviousElection';
 import AddAdmin from '../components/AddAdmin';
 import AddVoter from '../components/AddVoter';
-import CreateElection from '../components/CreateElection';
+// import CreateElection from '../components/CreateElection';
 import Voters from '../components/Voters';
 import LiveElection from '../components/LiveElection';
+import AddParty from '../components/AddParty';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -231,7 +232,7 @@ const AdminDashboard = () => {
         return (
           <Box sx={{ p: 3 }}>
             <Typography variant="h4" gutterBottom>
-              Add New Party
+              <AddParty />
             </Typography>
             {/* Add party form would go here */}
           </Box>
@@ -248,9 +249,7 @@ const AdminDashboard = () => {
       case 'createElection':
         return (
           <Box sx={{ p: 3 }}>
-            <Typography variant="h4" gutterBottom>
-              <CreateElection />
-            </Typography>
+           
             {/* Create election form would go here */}
           </Box>
         );
