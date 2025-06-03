@@ -24,6 +24,8 @@ import {
   ListItemText,
   Divider,
   CssBaseline,
+  useTheme,
+  styled,
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -40,18 +42,18 @@ import {
   Home,
   Map
 } from '@mui/icons-material';
-// import IndiaMap from './IndiaMap'; // You'll need to create or import an IndiaMap component
 import ElectionResult from '../components/ElectionResult';
 import Parties from '../components/Parties';
 import PreviousElections from '../components/PreviousElection';
 import AddAdmin from '../components/AddAdmin';
 import AddVoter from '../components/AddVoter';
-// import CreateElection from '../components/CreateElection';
+import CreateElection from '../components/CreateElection';
 import Voters from '../components/Voters';
 import LiveElection from '../components/LiveElection';
 import AddParty from '../components/AddParty';
 
 const AdminDashboard = () => {
+  const theme = useTheme();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('home');
   const [candidates, setCandidates] = useState([]);
@@ -65,6 +67,25 @@ const AdminDashboard = () => {
     partyName: '',
     partySymbol: '',
   });
+
+  // Custom styled ListItemButton for active state
+  const StyledListItemButton = styled(ListItemButton)(({ theme, selected }) => ({
+    borderRadius: theme.shape.borderRadius,
+    margin: theme.spacing(0.5, 1),
+    '&.Mui-selected': {
+      backgroundColor: theme.palette.primary.light,
+      color: theme.palette.primary.contrastText,
+      '&:hover': {
+        backgroundColor: theme.palette.primary.main,
+      },
+      '& .MuiListItemIcon-root': {
+        color: theme.palette.primary.contrastText,
+      }
+    },
+    '&:hover': {
+      backgroundColor: theme.palette.action.hover,
+    }
+  }));
 
   // Fetch candidates on component mount
   useEffect(() => {
@@ -121,8 +142,8 @@ const AdminDashboard = () => {
   };
 
   const handleToggleSelect = (candidateId) => {
-    setSelectedCandidates(prev => 
-      prev.includes(candidateId) 
+    setSelectedCandidates(prev =>
+      prev.includes(candidateId)
         ? prev.filter(id => id !== candidateId)
         : [...prev, candidateId]
     );
@@ -214,90 +235,26 @@ const AdminDashboard = () => {
             <Typography variant="subtitle1" gutterBottom>
               Welcome to the Election Commission Control Center
             </Typography>
-            <Box sx={{ mt: 4 }}>
-              {/* <IndiaMap /> Replace with your actual India map component */}
-            </Box>
           </Box>
         );
       case 'addAdmin':
-        return (
-          <Box sx={{ p: 3 }}>
-            <Typography variant="h4" gutterBottom>
-              <AddAdmin />
-            </Typography>
-            {/* Add admin form would go here */}
-          </Box>
-        );
-      case 'addParty':
-        return (
-          <Box sx={{ p: 3 }}>
-            <Typography variant="h4" gutterBottom>
-              <AddParty />
-            </Typography>
-            {/* Add party form would go here */}
-          </Box>
-        );
-      case 'addVoter':
-        return (
-          <Box sx={{ p: 3 }}>
-            <Typography variant="h4" gutterBottom>
-              <AddVoter />
-            </Typography>
-            {/* Add voter form would go here */}
-          </Box>
-        );
+        return <AddAdmin />;
+      // case 'addParty':
+      //   return <AddParty />;
+      // case 'addVoter':
+      //   return <AddVoter />;
       case 'createElection':
-        return (
-          <Box sx={{ p: 3 }}>
-           
-            {/* Create election form would go here */}
-          </Box>
-        );
+        return <CreateElection />;
       case 'previousElection':
-        return (
-          <Box sx={{ p: 3 }}>
-            <Typography variant="h4" gutterBottom>
-              <PreviousElections />
-            </Typography>
-            {/* Previous elections list would go here */}
-          </Box>
-        );
+        return <PreviousElections />;
       case 'electionResult':
-        return (
-          <Box sx={{ p: 3 }}>
-            <Typography variant="h4" gutterBottom>
-             <ElectionResult />
-            </Typography>
-            {/* Election results would go here */}
-          </Box>
-        );
+        return <ElectionResult />;
       case 'parties':
-        return (
-          <Box sx={{ p: 3 }}>
-            <Typography variant="h4" gutterBottom>
-              <Parties />
-            </Typography>
-            {/* Parties list would go here */}
-          </Box>
-        );
+        return <Parties />;
       case 'voters':
-        return (
-          <Box sx={{ p: 3 }}>
-            <Typography variant="h4" gutterBottom>
-              <Voters />
-            </Typography>
-            {/* Voters list would go here */}
-          </Box>
-        );
+        return <Voters />;
       case 'liveElection':
-        return (
-          <Box sx={{ p: 3 }}>
-            <Typography variant="h4" gutterBottom>
-              <LiveElection />
-            </Typography>
-            {/* Live election monitoring would go here */}
-          </Box>
-        );
+        return <LiveElection />;
       default:
         return (
           <Box sx={{ p: 3 }}>
@@ -308,6 +265,20 @@ const AdminDashboard = () => {
         );
     }
   };
+
+  // Navigation items data
+  const navItems = [
+    { key: 'home', label: 'Dashboard', icon: <Home /> },
+    { key: 'addAdmin', label: 'Add Admin', icon: <PersonAdd /> },
+    // { key: 'addParty', label: 'Add Party', icon: <Groups /> },
+    // { key: 'addVoter', label: 'Add Voter', icon: <HowToVote /> },
+    { key: 'createElection', label: 'Create Election', icon: <HowToReg /> },
+    { key: 'previousElection', label: 'Previous Election', icon: <History /> },
+    { key: 'electionResult', label: 'Election Result', icon: <BarChart /> },
+    { key: 'parties', label: 'Parties', icon: <AccountTree /> },
+    { key: 'voters', label: 'Voters', icon: <People /> },
+    { key: 'liveElection', label: 'Live Election', icon: <LiveTv /> },
+  ];
 
   return (
     <Box sx={{ display: 'flex' }}>
@@ -320,105 +291,43 @@ const AdminDashboard = () => {
           '& .MuiDrawer-paper': {
             width: 240,
             boxSizing: 'border-box',
+ backgroundColor: '#1E1E1E',            color: theme.palette.primary.contrastText,
           },
         }}
       >
         <Box sx={{ p: 2, textAlign: 'center' }}>
-          <Typography variant="h6">चुनाव आयोग</Typography>
-          <Typography variant="subtitle2">Admin Panel</Typography>
+          <Typography variant="h6" sx={{ color: theme.palette.primary.contrastText }}>
+            चुनाव आयोग
+          </Typography>
+          <Typography variant="subtitle2" sx={{ color: theme.palette.primary.light }}>
+            Admin Panel
+          </Typography>
         </Box>
-        <Divider />
+        <Divider sx={{ borderColor: 'rgba(255, 255, 255, 0.12)' }} />
         <List>
-          <ListItem disablePadding>
-            <ListItemButton onClick={() => setActiveTab('home')}>
-              <ListItemIcon>
-                <Home />
-              </ListItemIcon>
-              <ListItemText primary="Dashboard" />
-            </ListItemButton>
-          </ListItem>
-          <ListItem disablePadding>
-            <ListItemButton onClick={() => setActiveTab('addAdmin')}>
-              <ListItemIcon>
-                <PersonAdd />
-              </ListItemIcon>
-              <ListItemText primary="Add Admin" />
-            </ListItemButton>
-          </ListItem>
-          <ListItem disablePadding>
-            <ListItemButton onClick={() => setActiveTab('addParty')}>
-              <ListItemIcon>
-                <Groups />
-              </ListItemIcon>
-              <ListItemText primary="Add Party" />
-            </ListItemButton>
-          </ListItem>
-          <ListItem disablePadding>
-            <ListItemButton onClick={() => setActiveTab('addVoter')}>
-              <ListItemIcon>
-                <HowToVote />
-              </ListItemIcon>
-              <ListItemText primary="Add Voter" />
-            </ListItemButton>
-          </ListItem>
-          <ListItem disablePadding>
-            <ListItemButton onClick={() => setActiveTab('createElection')}>
-              <ListItemIcon>
-                <HowToReg />
-              </ListItemIcon>
-              <ListItemText primary="Create Election" />
-            </ListItemButton>
-          </ListItem>
-          <ListItem disablePadding>
-            <ListItemButton onClick={() => setActiveTab('previousElection')}>
-              <ListItemIcon>
-                <History />
-              </ListItemIcon>
-              <ListItemText primary="Previous Election" />
-            </ListItemButton>
-          </ListItem>
-          <ListItem disablePadding>
-            <ListItemButton onClick={() => setActiveTab('electionResult')}>
-              <ListItemIcon>
-                <BarChart />
-              </ListItemIcon>
-              <ListItemText primary="Election Result" />
-            </ListItemButton>
-          </ListItem>
-          <ListItem disablePadding>
-            <ListItemButton onClick={() => setActiveTab('parties')}>
-              <ListItemIcon>
-                <AccountTree />
-              </ListItemIcon>
-              <ListItemText primary="Parties" />
-            </ListItemButton>
-          </ListItem>
-          <ListItem disablePadding>
-            <ListItemButton onClick={() => setActiveTab('voters')}>
-              <ListItemIcon>
-                <People />
-              </ListItemIcon>
-              <ListItemText primary="Voters" />
-            </ListItemButton>
-          </ListItem>
-          <ListItem disablePadding>
-            <ListItemButton onClick={() => setActiveTab('liveElection')}>
-              <ListItemIcon>
-                <LiveTv />
-              </ListItemIcon>
-              <ListItemText primary="Live Election" />
-            </ListItemButton>
-          </ListItem>
+          {navItems.map((item) => (
+            <ListItem key={item.key} disablePadding>
+              <StyledListItemButton
+                selected={activeTab === item.key}
+                onClick={() => setActiveTab(item.key)}
+              >
+                <ListItemIcon sx={{ color: activeTab === item.key ? theme.palette.primary.contrastText : theme.palette.primary.light }}>
+                  {item.icon}
+                </ListItemIcon>
+                <ListItemText primary={item.label} />
+              </StyledListItemButton>
+            </ListItem>
+          ))}
         </List>
-        <Divider />
+        <Divider sx={{ borderColor: 'rgba(255, 255, 255, 0.12)' }} />
         <Box sx={{ position: 'absolute', bottom: 0, width: '100%' }}>
           <ListItem disablePadding>
-            <ListItemButton onClick={handleLogout}>
-              <ListItemIcon>
+            <StyledListItemButton onClick={handleLogout}>
+              <ListItemIcon sx={{ color: theme.palette.primary.light }}>
                 <Logout />
               </ListItemIcon>
               <ListItemText primary="Logout" />
-            </ListItemButton>
+            </StyledListItemButton>
           </ListItem>
         </Box>
       </Drawer>
@@ -429,6 +338,7 @@ const AdminDashboard = () => {
           bgcolor: 'background.default',
           p: 3,
           marginLeft: '240px',
+          minHeight: '100vh',
         }}
       >
         {renderContent()}

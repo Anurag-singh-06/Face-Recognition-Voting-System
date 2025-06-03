@@ -1,212 +1,452 @@
-// import { useState } from 'react';
-// import {
-//   Box,
-//   Typography,
-//   TextField,
-//   Button,
-//   Alert,
-//   Paper,
-//   MenuItem,
-//   Grid,
-//   FormControl,
-//   InputLabel,
-//   Select,
-//   Chip,
-// } from '@mui/material';
-// import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-// import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-// import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { useState, useEffect } from 'react';
+import {
+  Box,
+  Typography,
+  Paper,
+  TextField,
+  Button,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Grid,
+  Avatar,
+  CircularProgress,
+  Alert,
+  Divider,
+  Chip,
+  Stack,
+  useTheme,
+  useMediaQuery
+} from '@mui/material';
+import { Save, RestartAlt, Delete, Add, Info } from '@mui/icons-material';
+import axios from 'axios';
 
+const CreateElection = () => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  
+  const [electionData, setElectionData] = useState({
+    title: '',
+    description: '',
+    electionType: 'general',
+    startDate: '',
+    endDate: '',
+    parties: [],
+    status: 'draft'
+  });
 
+  const [parties, setParties] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [fetchingParties, setFetchingParties] = useState(true);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
-// const CreateElection = () => {
-//   const [formData, setFormData] = useState<ElectionFormData>({
-//     title: '',
-//     description: '',
-//     startDate: null,
-//     endDate: null,
-//     electionType: '',
-//     constituencies: [],
-//   });
-//   const [constituencyInput, setConstituencyInput] = useState('');
-//   const [error, setError] = useState('');
-//   const [success, setSuccess] = useState('');
+  useEffect(() => {
+    const fetchParties = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const res = await axios.get('http://localhost:5000/api/admin/candidates', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setParties(res.data);
+      } catch (err) {
+        setError(err.response?.data?.message || 'Failed to load parties');
+      } finally {
+        setFetchingParties(false);
+      }
+    };
+    fetchParties();
+  }, []);
 
-//   const handleChange = (e) => {
-//     const { name, value } = e.target;
-//     setFormData((prev) => ({ ...prev, [name]: value }));
-//   };
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setElectionData((prev) => ({ ...prev, [name]: value }));
+  };
 
-//   const handleAddConstituency = () => {
-//     if (constituencyInput && !formData.constituencies.includes(constituencyInput)) {
-//       setFormData(prev => ({
-//         ...prev,
-//         constituencies: [...prev.constituencies, constituencyInput]
-//       }));
-//       setConstituencyInput('');
-//     }
-//   };
+  const handleAddParty = (partyId) => {
+    if (!electionData.parties.includes(partyId)) {
+      setElectionData((prev) => ({
+        ...prev,
+        parties: [...prev.parties, partyId]
+      }));
+    }
+  };
 
-//   const handleDeleteConstituency = (constituencyToDelete) => {
-//     setFormData(prev => ({
-//       ...prev,
-//       constituencies: prev.constituencies.filter(item => item !== constituencyToDelete)
-//     }));
-//   };
+  const handleRemoveParty = (partyId) => {
+    setElectionData((prev) => ({
+      ...prev,
+      parties: prev.parties.filter((id) => id !== partyId)
+    }));
+  };
 
-//   const handleSubmit = (e) => {
-//     e.preventDefault();
-//     setError('');
-//     setSuccess('');
+  const handleReset = () => {
+    setElectionData({
+      title: '',
+      description: '',
+      electionType: 'general',
+      startDate: '',
+      endDate: '',
+      parties: [],
+      status: 'draft'
+    });
+    setError('');
+    setSuccess('');
+  };
 
-//     if (!formData.title) {
-//       setError('Title is required');
-//       return;
-//     }
+  const validateDate = (dateString) => !isNaN(Date.parse(dateString));
 
-//     if (!formData.startDate || !formData.endDate) {
-//       setError('Start date and end date are required');
-//       return;
-//     }
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setSuccess('');
 
-//     if (formData.startDate && formData.endDate && formData.startDate > formData.endDate) {
-//       setError('End date must be after start date');
-//       return;
-//     }
+    const { title, startDate, endDate, parties } = electionData;
 
-//     if (!formData.electionType) {
-//       setError('Election type is required');
-//       return;
-//     }
+    if (!title || !startDate || !endDate) {
+      return setError('All required fields must be filled');
+    }
 
-//     // API call would go here
-//     console.log('Election data:', formData);
-//     setSuccess('Election created successfully');
-//     setFormData({
-//       title: '',
-//       description: '',
-//       startDate: null,
-//       endDate: null,
-//       electionType: '',
-//       constituencies: [],
-//     });
-//   };
+    if (!validateDate(startDate) || !validateDate(endDate)) {
+      return setError('Invalid date format');
+    }
 
-//   return (
-//     <LocalizationProvider dateAdapter={AdapterDateFns}>
-//       <Box sx={{ p: 3 }}>
-//         <Typography variant="h4" gutterBottom>
-//           Create New Election
-//         </Typography>
-//         <Paper sx={{ p: 3, maxWidth: 800, mx: 'auto' }}>
-//           {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
-//           {success && <Alert severity="success" sx={{ mb: 2 }}>{success}</Alert>}
-          
-//           <form onSubmit={handleSubmit}>
-//             <Grid container spacing={2}>
-//               <Grid item xs={12}>
-//                 <TextField
-//                   fullWidth
-//                   label="Election Title"
-//                   name="title"
-//                   value={formData.title}
-//                   onChange={handleChange}
-//                   required
-//                 />
-//               </Grid>
-//               <Grid item xs={12}>
-//                 <TextField
-//                   fullWidth
-//                   label="Description"
-//                   name="description"
-//                   value={formData.description}
-//                   onChange={handleChange}
-//                   multiline
-//                   rows={3}
-//                 />
-//               </Grid>
-//               <Grid item xs={12} sm={6}>
-//                 <DatePicker
-//                   label="Start Date"
-//                   value={formData.startDate}
-//                   onChange={(date) => setFormData(prev => ({ ...prev, startDate: date }))}
-//                   renderInput={(params) => <TextField {...params} fullWidth required />}
-//                 />
-//               </Grid>
-//               <Grid item xs={12} sm={6}>
-//                 <DatePicker
-//                   label="End Date"
-//                   value={formData.endDate}
-//                   onChange={(date) => setFormData(prev => ({ ...prev, endDate: date }))}
-//                   renderInput={(params) => <TextField {...params} fullWidth required />}
-//                   minDate={formData.startDate}
-//                 />
-//               </Grid>
-//               <Grid item xs={12}>
-//                 <FormControl fullWidth>
-//                   <InputLabel>Election Type *</InputLabel>
-//                   <Select
-//                     name="electionType"
-//                     value={formData.electionType}
-//                     onChange={handleChange}
-//                     label="Election Type *"
-//                     required
-//                   >
-//                     <MenuItem value="national">National</MenuItem>
-//                     <MenuItem value="state">State</MenuItem>
-//                     <MenuItem value="local">Local</MenuItem>
-//                   </Select>
-//                 </FormControl>
-//               </Grid>
-//               <Grid item xs={12}>
-//                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-//                   <TextField
-//                     fullWidth
-//                     label="Add Constituency"
-//                     value={constituencyInput}
-//                     onChange={(e) => setConstituencyInput(e.target.value)}
-//                     onKeyPress={(e) => {
-//                       if (e.key === 'Enter') {
-//                         e.preventDefault();
-//                         handleAddConstituency();
-//                       }
-//                     }}
-//                   />
-//                   <Button 
-//                     variant="outlined" 
-//                     onClick={handleAddConstituency}
-//                     disabled={!constituencyInput}
-//                   >
-//                     Add
-//                   </Button>
-//                 </Box>
-//                 <Box sx={{ mt: 1, display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-//                   {formData.constituencies.map((item) => (
-//                     <Chip
-//                       key={item}
-//                       label={item}
-//                       onDelete={() => handleDeleteConstituency(item)}
-//                     />
-//                   ))}
-//                 </Box>
-//               </Grid>
-//               <Grid item xs={12}>
-//                 <Button 
-//                   type="submit" 
-//                   variant="contained" 
-//                   color="primary" 
-//                   fullWidth
-//                   size="large"
-//                 >
-//                   Create Election
-//                 </Button>
-//               </Grid>
-//             </Grid>
-//           </form>
-//         </Paper>
-//       </Box>
-//     </LocalizationProvider>
-//   );
-// };
+    if (new Date(startDate) > new Date(endDate)) {
+      return setError('End date must be after start date');
+    }
 
-// export default CreateElection;
+    if (!parties || parties.length === 0) {
+      return setError('Select at least one party');
+    }
+
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('token');
+      const partyIds = parties.map(party => typeof party === 'string' ? party : party._id);
+
+      await axios.post(
+        'http://localhost:5000/api/election/add',
+        {
+          title,
+          startDate: new Date(startDate).toISOString(),
+          endDate: new Date(endDate).toISOString(),
+          parties: partyIds
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+
+      handleReset();
+      setTimeout(() => setSuccess('Election created successfully!'), 100);
+    } catch (err) {
+      setError(err.response?.data?.message || 'Submission failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Box sx={{ 
+      maxWidth: 900, 
+      mx: 'auto', 
+      p: isMobile ? 2 : 4,
+      '& .MuiFormHelperText-root': {
+        ml: 0
+      }
+    }}>
+      <Typography 
+        variant="h4" 
+        gutterBottom 
+        sx={{ 
+          fontWeight: 700,
+          color: theme.palette.primary.main,
+          mb: 3,
+          textAlign: 'center'
+        }}
+      >
+        Create New Election
+      </Typography>
+
+      {error && (
+        <Alert 
+          severity="error" 
+          sx={{ mb: 3 }}
+          onClose={() => setError('')}
+        >
+          {error}
+        </Alert>
+      )}
+      {success && (
+        <Alert 
+          severity="success" 
+          sx={{ mb: 3 }}
+          onClose={() => setSuccess('')}
+        >
+          {success}
+        </Alert>
+      )}
+
+      <Paper 
+        sx={{ 
+          p: isMobile ? 2 : 4,
+          borderRadius: 2,
+          boxShadow: theme.shadows[3]
+        }} 
+        component="form" 
+        onSubmit={handleSubmit}
+      >
+        <Box sx={{ mb: 4 }}>
+          <Typography 
+            variant="h6" 
+            gutterBottom 
+            sx={{ 
+              fontWeight: 600,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1
+            }}
+          >
+            <Info color="primary" />
+            Basic Information
+          </Typography>
+          <Divider sx={{ mb: 3 }} />
+          <Grid container spacing={3}>
+            <Grid item xs={12}>
+              <TextField
+                label="Election Title"
+                name="title"
+                value={electionData.title}
+                onChange={handleChange}
+                required
+                fullWidth
+                size="small"
+                helperText="Enter a descriptive title for the election"
+              />
+            </Grid>
+
+            <Grid item xs={12}>
+              <TextField
+                label="Description (Optional)"
+                name="description"
+                value={electionData.description}
+                onChange={handleChange}
+                multiline
+                minRows={1}
+                fullWidth
+                size="small"
+                helperText="Provide additional details about this election"
+              />
+            </Grid>
+
+            <Grid item xs={12} sm={6}>
+              <TextField
+                label="Start Date"
+                name="startDate"
+                type="date"
+                value={electionData.startDate}
+                onChange={handleChange}
+                InputLabelProps={{ shrink: true }}
+                fullWidth
+                required
+                size="small"
+                inputProps={{
+                  min: new Date().toISOString().split('T')[0]
+                }}
+              />
+            </Grid>
+
+            <Grid item xs={12} sm={6}>
+              <TextField
+                label="End Date"
+                name="endDate"
+                type="date"
+                value={electionData.endDate}
+                onChange={handleChange}
+                InputLabelProps={{ shrink: true }}
+                fullWidth
+                required
+                size="small"
+                error={
+                  electionData.startDate &&
+                  electionData.endDate &&
+                  new Date(electionData.startDate) > new Date(electionData.endDate)
+                }
+                helperText={
+                  electionData.startDate &&
+                  electionData.endDate &&
+                  new Date(electionData.startDate) > new Date(electionData.endDate)
+                    ? 'End date must be after start date'
+                    : 'Election end date and time'
+                }
+                inputProps={{
+                  min: electionData.startDate || new Date().toISOString().split('T')[0]
+                }}
+              />
+            </Grid>
+
+            <Grid item xs={12}>
+              <FormControl fullWidth size="small">
+                <InputLabel>Election Type</InputLabel>
+                <Select
+                  name="electionType"
+                  value={electionData.electionType}
+                  onChange={handleChange}
+                  label="Election Type"
+                >
+                  <MenuItem value="general">General Election</MenuItem>
+                  <MenuItem value="primary">Primary Election</MenuItem>
+                  <MenuItem value="referendum">Referendum</MenuItem>
+                  <MenuItem value="by-election">By-election</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+          </Grid>
+        </Box>
+
+        <Box sx={{ mb: 4 }}>
+          <Typography 
+            variant="h6" 
+            gutterBottom 
+            sx={{ 
+              fontWeight: 600,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1
+            }}
+          >
+            <Add color="primary" />
+            Participating Parties
+          </Typography>
+          <Divider sx={{ mb: 3 }} />
+          {fetchingParties ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', py: 3 }}>
+              <CircularProgress size={24} />
+            </Box>
+          ) : (
+            <>
+              <FormControl fullWidth size="small">
+                <InputLabel>Add Party</InputLabel>
+                <Select
+                  value=""
+                  onChange={(e) => handleAddParty(e.target.value)}
+                  label="Add Party"
+                  MenuProps={{
+                    PaperProps: {
+                      style: {
+                        maxHeight: 300
+                      }
+                    }
+                  }}
+                >
+                  {parties.filter((p) => !electionData.parties.includes(p._id)).map((p) => (
+                    <MenuItem key={p._id} value={p._id}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                        <Avatar 
+                          src={p.symbol} 
+                          sx={{ 
+                            width: 28, 
+                            height: 28,
+                            border: `1px solid ${theme.palette.divider}`
+                          }} 
+                        />
+                        <Box>
+                          <Typography variant="body1">{p.partyName}</Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            {p.abbreviation}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+
+              {electionData.parties.length > 0 && (
+                <Box sx={{ mt: 3 }}>
+                  <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                    Selected Parties ({electionData.parties.length})
+                  </Typography>
+                  <Stack 
+                    direction="row" 
+                    spacing={1} 
+                    useFlexGap 
+                    flexWrap="wrap" 
+                    sx={{ mt: 1 }}
+                  >
+                    {electionData.parties.map((id) => {
+                      const party = parties.find((p) => p._id === id);
+                      if (!party) return null;
+                      return (
+                        <Chip
+                          key={id}
+                          avatar={
+                            <Avatar 
+                              src={party.symbol} 
+                              sx={{ 
+                                width: 24, 
+                                height: 24,
+                                border: `1px solid ${theme.palette.divider}`
+                              }} 
+                            />
+                          }
+                          label={party.partyName}
+                          onDelete={() => handleRemoveParty(id)}
+                          deleteIcon={<Delete fontSize="small" />}
+                          sx={{ 
+                            mb: 1,
+                            '& .MuiChip-label': {
+                              pr: 0.5
+                            }
+                          }}
+                          variant="outlined"
+                        />
+                      );
+                    })}
+                  </Stack>
+                </Box>
+              )}
+            </>
+          )}
+        </Box>
+
+        <Box sx={{ 
+          mt: 4, 
+          display: 'flex', 
+          justifyContent: 'flex-end', 
+          gap: 2,
+          flexDirection: isMobile ? 'column' : 'row'
+        }}>
+          <Button
+            variant="outlined"
+            color="secondary"
+            startIcon={<RestartAlt />}
+            onClick={handleReset}
+            disabled={loading}
+            fullWidth={isMobile}
+            sx={{
+              order: isMobile ? 2 : 1
+            }}
+          >
+            Reset Form
+          </Button>
+          <Button
+            type="submit"
+            variant="contained"
+            startIcon={loading ? <CircularProgress size={20} /> : <Save />}
+            disabled={loading}
+            fullWidth={isMobile}
+            sx={{
+              order: isMobile ? 1 : 2,
+              py: 1.5
+            }}
+          >
+            {loading ? 'Creating Election...' : 'Create Election'}
+          </Button>
+        </Box>
+      </Paper>
+    </Box>
+  );
+};
+
+export default CreateElection;

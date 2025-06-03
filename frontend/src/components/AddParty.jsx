@@ -81,7 +81,7 @@ const AddParty = () => {
         <form onSubmit={handleSubmit}>
           <TextField
             fullWidth
-            label="Party Name"
+            label="Candidate Name"
             name="name"
             value={formData.name}
             onChange={handleChange}
@@ -90,7 +90,7 @@ const AddParty = () => {
           />
           <TextField
             fullWidth
-            label="Official Party Name"
+            label="Party Name"
             name="partyName"
             value={formData.partyName}
             onChange={handleChange}

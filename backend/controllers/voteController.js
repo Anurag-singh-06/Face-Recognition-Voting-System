@@ -3,6 +3,15 @@ const Candidate = require('../models/Candidate');
 
 const axios = require('axios');
 
+exports.getAllUsers = async (req, res) => {
+  try {
+    const users = await User.find().select('-password -otp -otpExpiry');
+    res.json(users);
+  } catch (error) {
+    console.error('[getAllUsers] Error:', error);
+    res.status(500).json({ message: 'Failed to fetch users' });
+  }
+};
 // Verify voter's face
 exports.verifyVoterFace = async (req, res) => {
     try {

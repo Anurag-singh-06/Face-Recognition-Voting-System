@@ -22,6 +22,7 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/voting-pl
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/admin', require('./routes/admin'));
 app.use('/api/voter', require('./routes/voter'));
+app.use('/api/election', require('./routes/election'));
 
 // Error handling middleware
 app.use((err, req, res, next) => {

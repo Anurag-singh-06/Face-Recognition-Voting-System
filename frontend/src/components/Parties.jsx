@@ -103,8 +103,8 @@ const Candidates = () => {
   const handleResetVotes = async () => {
     if (window.confirm('Reset all votes to 0?')) {
       try {
-        const response = await fetch(`http://localhost:5000/api/admin/candidates/reset-votes`, {
-          method: 'PATCH',
+        const response = await fetch(`http://localhost:5000/api/admin/reset-votes`, {
+          method: 'POST',
           headers: {
             Authorization: `Bearer ${localStorage.getItem('token')}`,
           },
@@ -146,8 +146,8 @@ const Candidates = () => {
             <TableHead>
               <TableRow>
                 <TableCell>Symbol</TableCell>
-                <TableCell>Name</TableCell>
-                <TableCell>Party</TableCell>
+                 <TableCell>Party Name</TableCell>
+                <TableCell>President Name</TableCell>
                 <TableCell>Votes</TableCell>
                 <TableCell>Actions</TableCell>
               </TableRow>
@@ -158,8 +158,8 @@ const Candidates = () => {
                   <TableCell>
                     <Avatar src={candidate.partySymbol} alt={candidate.partyName} />
                   </TableCell>
+                                    <TableCell>{candidate.partyName}</TableCell>
                   <TableCell>{candidate.name}</TableCell>
-                  <TableCell>{candidate.partyName}</TableCell>
                   <TableCell>{candidate.votes}</TableCell>
                   <TableCell>
                     <IconButton onClick={() => handleDeleteCandidate(candidate._id)}>
