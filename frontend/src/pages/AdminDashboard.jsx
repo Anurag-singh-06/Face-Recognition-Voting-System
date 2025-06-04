@@ -10,18 +10,52 @@ import {
   Card,
   CardContent,
   CardMedia,
-  CardActions,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
   Alert,
   Checkbox,
+  Drawer,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  Divider,
+  CssBaseline,
+  useTheme,
+  styled,
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import {
+  PersonAdd,
+  Groups,
+  HowToVote,
+  HowToReg,
+  History,
+  BarChart,
+  AccountTree,
+  People,
+  LiveTv,
+  Logout,
+  Home,
+  Map
+} from '@mui/icons-material';
+import ElectionResult from '../components/ElectionResult';
+import Parties from '../components/Parties';
+import PreviousElections from '../components/PreviousElection';
+import AddAdmin from '../components/AddAdmin';
+import AddVoter from '../components/AddVoter';
+import CreateElection from '../components/CreateElection';
+import Voters from '../components/Voters';
+import LiveElection from '../components/LiveElection';
+import AddParty from '../components/AddParty';
 
 const AdminDashboard = () => {
+  const theme = useTheme();
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState('home');
   const [candidates, setCandidates] = useState([]);
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showResultsDialog, setShowResultsDialog] = useState(false);
@@ -34,10 +68,31 @@ const AdminDashboard = () => {
     partySymbol: '',
   });
 
+  // Custom styled ListItemButton for active state
+  const StyledListItemButton = styled(ListItemButton)(({ theme, selected }) => ({
+    borderRadius: theme.shape.borderRadius,
+    margin: theme.spacing(0.5, 1),
+    '&.Mui-selected': {
+      backgroundColor: theme.palette.primary.light,
+      color: theme.palette.primary.contrastText,
+      '&:hover': {
+        backgroundColor: theme.palette.primary.main,
+      },
+      '& .MuiListItemIcon-root': {
+        color: theme.palette.primary.contrastText,
+      }
+    },
+    '&:hover': {
+      backgroundColor: theme.palette.action.hover,
+    }
+  }));
+
   // Fetch candidates on component mount
   useEffect(() => {
-    fetchCandidates();
-  }, []);
+    if (activeTab === 'candidates') {
+      fetchCandidates();
+    }
+  }, [activeTab]);
 
   const fetchCandidates = async () => {
     try {
@@ -87,8 +142,8 @@ const AdminDashboard = () => {
   };
 
   const handleToggleSelect = (candidateId) => {
-    setSelectedCandidates(prev => 
-      prev.includes(candidateId) 
+    setSelectedCandidates(prev =>
+      prev.includes(candidateId)
         ? prev.filter(id => id !== candidateId)
         : [...prev, candidateId]
     );
@@ -123,27 +178,6 @@ const AdminDashboard = () => {
       setError('Failed to delete selected candidates');
     }
   };
-
-  const handleDeleteCandidate = async (id) => {
-    try {
-      const response = await fetch(`http://localhost:5000/api/admin/candidates/${id}`, {
-        method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to delete candidate');
-      }
-
-      fetchCandidates();
-    } catch (err) {
-      setError(err.message);
-    }
-  };
-
-
 
   const handleResetVotes = async () => {
     try {
@@ -190,129 +224,124 @@ const AdminDashboard = () => {
     navigate('/');
   };
 
-  return (
-    <Container maxWidth="lg">
-      <Box sx={{ mt: 4, mb: 4 }}>
-        <Paper elevation={3} sx={{ p: 4 }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 4 }}>
-            <Typography component="h1" variant="h4">
-            चुनाव आयोग नियंत्रण केंद्र 
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'home':
+        return (
+          <Box sx={{ p: 3, textAlign: 'center' }}>
+            <Typography variant="h4" gutterBottom>
+              Election Commission Dashboard
             </Typography>
-            <Button variant="outlined" color="error" onClick={handleLogout}>
-              Logout
-            </Button>
+            <Typography variant="subtitle1" gutterBottom>
+              Welcome to the Election Commission Control Center
+            </Typography>
           </Box>
-
-          {error && (
-            <Alert severity="error" sx={{ mb: 2 }}>
-              {error}
-            </Alert>
-          )}
-
-          <Box sx={{ mb: 4 }}>
-            <Grid container spacing={2}>
-              <Grid item>
-                <Button
-                  variant="contained"
-                  color="primary"
-                  onClick={() => setShowAddDialog(true)}
-                >
-                  Add Candidate
-                </Button>
-              </Grid>
-              <Grid item>
-                {deleteMode ? (
-                  <Button
-                    variant="contained"
-                    color="error"
-                    onClick={handleDeleteSelected}
-                    disabled={selectedCandidates.length === 0}
-                  >
-                    Delete Selected ({selectedCandidates.length})
-                  </Button>
-                ) : (
-                  <Button
-                    variant="contained"
-                    color="error"
-                    onClick={handleToggleDeleteMode}
-                  >
-                    Delete Candidates
-                  </Button>
-                )}
-              </Grid>
-
-              <Grid item>
-                <Button
-                  variant="contained"
-                  color="warning"
-                  onClick={handleResetVotes}
-                >
-                  Reset All Votes
-                </Button>
-              </Grid>
-              <Grid item>
-                <Button
-                  variant="contained"
-                  color="info"
-                  onClick={handleViewResults}
-                >
-                  View Results
-                </Button>
-              </Grid>
-            </Grid>
+        );
+      case 'addAdmin':
+        return <AddAdmin />;
+      // case 'addParty':
+      //   return <AddParty />;
+      // case 'addVoter':
+      //   return <AddVoter />;
+      case 'createElection':
+        return <CreateElection />;
+      case 'previousElection':
+        return <PreviousElections />;
+      case 'electionResult':
+        return <ElectionResult />;
+      case 'parties':
+        return <Parties />;
+      case 'voters':
+        return <Voters />;
+      case 'liveElection':
+        return <LiveElection />;
+      default:
+        return (
+          <Box sx={{ p: 3 }}>
+            <Typography variant="h4" gutterBottom>
+              Dashboard
+            </Typography>
           </Box>
+        );
+    }
+  };
 
-          <Grid container spacing={3}>
-            {candidates.map((candidate) => (
-              <Grid item xs={12} sm={6} md={4} key={candidate._id}>
-                <Card sx={{
-                  position: 'relative',
-                  opacity: deleteMode && !selectedCandidates.includes(candidate._id) ? 0.7 : 1
-                }}>
-                  {deleteMode && (
-                    <Checkbox
-                      checked={selectedCandidates.includes(candidate._id)}
-                      onChange={() => handleToggleSelect(candidate._id)}
-                      sx={{
-                        position: 'absolute',
-                        top: 8,
-                        right: 8,
-                        zIndex: 1,
-                        backgroundColor: 'rgba(255, 255, 255, 0.8)',
-                        '&:hover': {
-                          backgroundColor: 'rgba(255, 255, 255, 0.9)'
-                        }
-                      }}
-                    />
-                  )}
-                  <CardMedia
-                    component="img"
-                    height="140"
-                    image={candidate.partySymbol}
-                    alt={candidate.partyName}
-                    sx={{
-                      cursor: deleteMode ? 'pointer' : 'default'
-                    }}
-                    onClick={() => deleteMode && handleToggleSelect(candidate._id)}
-                  />
-                  <CardContent>
-                    <Typography variant="h6" gutterBottom>
-                      {candidate.name}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Party: {candidate.partyName}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Votes: {candidate.votes}
-                    </Typography>
-                  </CardContent>
-                  <CardActions>
-                  </CardActions>
-                </Card>
-              </Grid>
-            ))}
-          </Grid>
-        </Paper>
+  // Navigation items data
+  const navItems = [
+    { key: 'home', label: 'Dashboard', icon: <Home /> },
+    { key: 'addAdmin', label: 'Add Admin', icon: <PersonAdd /> },
+    // { key: 'addParty', label: 'Add Party', icon: <Groups /> },
+    // { key: 'addVoter', label: 'Add Voter', icon: <HowToVote /> },
+    { key: 'createElection', label: 'Create Election', icon: <HowToReg /> },
+    { key: 'previousElection', label: 'Previous Election', icon: <History /> },
+    { key: 'electionResult', label: 'Election Result', icon: <BarChart /> },
+    { key: 'parties', label: 'Parties', icon: <AccountTree /> },
+    { key: 'voters', label: 'Voters', icon: <People /> },
+    { key: 'liveElection', label: 'Live Election', icon: <LiveTv /> },
+  ];
+
+  return (
+    <Box sx={{ display: 'flex' }}>
+      <CssBaseline />
+      <Drawer
+        variant="permanent"
+        sx={{
+          width: 240,
+          flexShrink: 0,
+          '& .MuiDrawer-paper': {
+            width: 240,
+            boxSizing: 'border-box',
+ backgroundColor: '#1E1E1E',            color: theme.palette.primary.contrastText,
+          },
+        }}
+      >
+        <Box sx={{ p: 2, textAlign: 'center' }}>
+          <Typography variant="h6" sx={{ color: theme.palette.primary.contrastText }}>
+            चुनाव आयोग
+          </Typography>
+          <Typography variant="subtitle2" sx={{ color: theme.palette.primary.light }}>
+            Admin Panel
+          </Typography>
+        </Box>
+        <Divider sx={{ borderColor: 'rgba(255, 255, 255, 0.12)' }} />
+        <List>
+          {navItems.map((item) => (
+            <ListItem key={item.key} disablePadding>
+              <StyledListItemButton
+                selected={activeTab === item.key}
+                onClick={() => setActiveTab(item.key)}
+              >
+                <ListItemIcon sx={{ color: activeTab === item.key ? theme.palette.primary.contrastText : theme.palette.primary.light }}>
+                  {item.icon}
+                </ListItemIcon>
+                <ListItemText primary={item.label} />
+              </StyledListItemButton>
+            </ListItem>
+          ))}
+        </List>
+        <Divider sx={{ borderColor: 'rgba(255, 255, 255, 0.12)' }} />
+        <Box sx={{ position: 'absolute', bottom: 0, width: '100%' }}>
+          <ListItem disablePadding>
+            <StyledListItemButton onClick={handleLogout}>
+              <ListItemIcon sx={{ color: theme.palette.primary.light }}>
+                <Logout />
+              </ListItemIcon>
+              <ListItemText primary="Logout" />
+            </StyledListItemButton>
+          </ListItem>
+        </Box>
+      </Drawer>
+      <Box
+        component="main"
+        sx={{
+          flexGrow: 1,
+          bgcolor: 'background.default',
+          p: 3,
+          marginLeft: '240px',
+          minHeight: '100vh',
+        }}
+      >
+        {renderContent()}
       </Box>
 
       {/* Add Candidate Dialog */}
@@ -382,7 +411,7 @@ const AdminDashboard = () => {
           <Button onClick={() => setShowResultsDialog(false)}>Close</Button>
         </DialogActions>
       </Dialog>
-    </Container>
+    </Box>
   );
 };
 

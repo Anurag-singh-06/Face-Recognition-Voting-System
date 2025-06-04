@@ -1,8 +1,14 @@
+// tailwind.config.js
 module.exports = {
-  content: [
-    "./src/**/*.{js,jsx,ts,tsx}",
+  purge: [],
+    content: [
+    "./src/**/*.{js,jsx,ts,tsx}", // for React
   ],
+  darkMode: false, // or 'media' or 'class'
   theme: {
+    extend: {},
+  },
+  variants: {
     extend: {},
   },
   plugins: [],

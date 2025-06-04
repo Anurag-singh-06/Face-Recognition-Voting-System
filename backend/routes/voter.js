@@ -19,4 +19,7 @@ router.post('/verify-and-vote', verifiedVoter, voteController.verifyAndVote);
 // Cast vote
 router.post('/vote', verifiedVoter, voteController.castVote);
 
+router.get('/allVoters', voteController.getAllUsers);
+
+
 module.exports = router;

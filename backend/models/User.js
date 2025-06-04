@@ -46,19 +46,19 @@ const userSchema = new mongoose.Schema({
         type: Boolean,
         default: true
     },
-    hasVoted: {
-        type: Boolean,
-        default: false
-    },
-    votedFor: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Candidate',
-        default: null
-    },
-    votedParty: {
-        type: String,
-        default: null
-    },
+    // hasVoted: {
+    //     type: Boolean,
+    //     default: false
+    // },
+    // votedFor: {
+    //     type: mongoose.Schema.Types.ObjectId,
+    //     ref: 'Candidate',
+    //     default: null
+    // },
+    // votedParty: {
+    //     type: String,
+    //     default: null
+    // },
     otp: {
         type: String,
         default: null
@@ -66,7 +66,26 @@ const userSchema = new mongoose.Schema({
     otpExpiry: {
         type: Date,
         default: null
+    },
+      votes: [{
+    election: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Election'
+    },
+    candidate: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Candidate'
+    },
+    party: String,
+    votedAt: {
+      type: Date,
+      default: Date.now
     }
+  }],
+  votedInElections: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Election'
+}]
 }, {
     timestamps: true
 });
