@@ -1,5 +1,8 @@
 const Election = require('../models/Election');
 const Candidate = require('../models/Candidate');
+const Vote = require('../models/Vote');
+const User = require('../models/User');
+
 
 exports.createElection = async (req, res) => {
   try {
@@ -68,5 +71,92 @@ exports.getPreviousElections = async (req, res) => {
   } catch (error) {
     console.error('Error fetching previous elections:', error);
     res.status(500).json({ message: 'Error fetching previous elections' });
+  }
+};
+
+// Get elections available for voting (current elections)
+exports.getActiveElections = async (req, res) => {
+  try {
+    const currentDate = new Date();
+    
+    const activeElections = await Election.find({
+      startDate: { $lte: currentDate },
+      endDate: { $gte: currentDate }
+    }).select('title startDate endDate'); // Only get essential fields
+
+    res.status(200).json({ elections: activeElections });
+  } catch (error) {
+    console.error('Error fetching active elections:', error);
+    res.status(500).json({ message: 'Error fetching active elections' });
+  }
+};
+
+exports.getElectionParties = async (req, res) => {
+  try {
+    const election = await Election.findById(req.params.electionId)
+      .populate('parties') // This populates the party details
+      .exec();
+
+    if (!election) {
+      return res.status(404).json({ message: 'Election not found' });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: election.parties
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+// Submit a vote
+exports.submitVote = async (req, res) => {
+  try {
+    const { electionId, partyId } = req.body;
+    
+    // Ensure user is properly authenticated
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+    
+    const voterId = req.user.id; // Changed from _id to id for consistency
+
+    // Check if election is still active
+    const election = await Election.findOne({
+      _id: electionId,
+      startDate: { $lte: new Date() },
+      endDate: { $gte: new Date() },
+      isActive: true
+    });
+
+    if (!election) {
+      return res.status(400).json({ message: 'Election is not active' });
+    }
+
+    // Check if party exists in this election
+    if (!election.parties.includes(partyId)) {
+      return res.status(400).json({ message: 'Invalid party for this election' });
+    }
+
+    // Check if user already voted in this election
+    const user = await User.findById(voterId);
+    if (user.votes.some(v => v.election.toString() === electionId)) {
+      return res.status(400).json({ message: 'You have already voted in this election' });
+    }
+
+    // Record the vote
+    user.votes.push({
+      election: electionId,
+      party: partyId,
+      votedAt: new Date()
+    });
+
+    await user.save();
+
+    res.status(201).json({ message: 'Vote recorded successfully' });
+  } catch (error) {
+    console.error('Error submitting vote:', error);
+    res.status(500).json({ message: 'Error submitting vote', error: error.message });
   }
 };

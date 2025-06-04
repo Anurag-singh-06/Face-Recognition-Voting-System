@@ -4,10 +4,19 @@ const User = require('../models/User');
 exports.protect = async (req, res, next) => {
     try {
         // Get token from header
-        const token = req.header('Authorization')?.replace('Bearer ', '');
+        let token;
         
+        if (
+            req.headers.authorization && 
+            req.headers.authorization.startsWith('Bearer')
+        ) {
+            token = req.headers.authorization.split(' ')[1];
+        }
+
         if (!token) {
-            return res.status(401).json({ message: 'No token, authorization denied' });
+            return res.status(401).json({ 
+                message: 'Not authorized, no token provided' 
+            });
         }
 
         // Verify token
@@ -16,13 +25,18 @@ exports.protect = async (req, res, next) => {
         // Get user from token
         const user = await User.findById(decoded.id).select('-password');
         if (!user) {
-            return res.status(401).json({ message: 'Token is not valid' });
+            return res.status(401).json({ 
+                message: 'Not authorized, user not found' 
+            });
         }
 
         req.user = user;
         next();
     } catch (err) {
-        res.status(401).json({ message: 'Token is not valid' });
+        console.error('Authentication error:', err.message);
+        res.status(401).json({ 
+            message: 'Not authorized, token failed' 
+        });
     }
 };
 
@@ -30,7 +44,9 @@ exports.admin = (req, res, next) => {
     if (req.user && req.user.role === 'admin') {
         next();
     } else {
-        res.status(403).json({ message: 'Access denied. Admin only.' });
+        res.status(403).json({ 
+            message: 'Not authorized as admin' 
+        });
     }
 };
 
@@ -38,6 +54,8 @@ exports.verifiedVoter = (req, res, next) => {
     if (req.user && req.user.role === 'voter' && req.user.isVerified) {
         next();
     } else {
-        res.status(403).json({ message: 'Access denied. Verified voters only.' });
+        res.status(403).json({ 
+            message: 'Not authorized as verified voter' 
+        });
     }
 };
